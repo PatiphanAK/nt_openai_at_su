@@ -1,0 +1,154 @@
+basePath: /
+definitions:
+  auth.authResponse:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/user.User'
+    type: object
+  auth.errorResponse:
+    properties:
+      error:
+        example: invalid credentials
+        type: string
+    type: object
+  auth.loginBody:
+    properties:
+      email:
+        example: hack@test.com
+        type: string
+      password:
+        example: secret123
+        type: string
+    type: object
+  auth.meResponse:
+    properties:
+      user:
+        $ref: '#/definitions/user.User'
+    type: object
+  auth.registerBody:
+    properties:
+      email:
+        example: hack@test.com
+        type: string
+      name:
+        example: Hacker
+        type: string
+      password:
+        example: secret123
+        type: string
+    type: object
+  user.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: 'Hackathon auth API: register, login, and me with JWT. All endpoints
+    return JSON.'
+  title: Simple Auth API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Verifies credentials and returns the user with a JWT token.
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.loginBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.authResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.errorResponse'
+        "401":
+          description: invalid credentials
+          schema:
+            $ref: '#/definitions/auth.errorResponse'
+      summary: Login
+      tags:
+      - auth
+  /me:
+    get:
+      description: Returns the user that belongs to the bearer token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.meResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/auth.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: Me
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new account (email + password, min 6 chars) and returns
+        the user with a JWT token.
+      parameters:
+      - description: Registration payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.registerBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.authResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth.errorResponse'
+        "409":
+          description: email already registered
+          schema:
+            $ref: '#/definitions/auth.errorResponse'
+      summary: Register
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer {token}" (token from /register or /login).
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
